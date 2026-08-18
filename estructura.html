@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="El Mundo de las Matrices - minijuego educativo de matemáticas">
+  <title>El Mundo de las Matrices</title>
+  <link rel="stylesheet" href="diseño.css">
+</head>
+<body>
+  <div id="app">
+    <div class="bg-grid"></div>
+    <header class="topbar">
+      <button class="brand" id="homeBtn" aria-label="Volver al inicio">
+        <span class="brand-icon">∑</span>
+        <span>EL MUNDO DE LAS <b>MATRICES</b></span>
+      </button>
+      <div class="top-actions">
+        <div class="score-pill">⭐ <span id="scoreTop">0</span></div>
+        <button class="icon-btn" id="soundBtn" title="Sonido">🔊</button>
+        <button class="icon-btn" id="helpBtn" title="Ayuda">?</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- HOME -->
+      <section class="screen active" id="homeScreen">
+        <div class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow">APRENDE · JUEGA · DESCUBRE</div>
+            <h1>El Mundo de las<br><span>Matrices</span></h1>
+            <p>Supera cinco estaciones, acumula puntos y descubre el código secreto.</p>
+            <div class="hero-buttons">
+              <button class="primary-btn" id="startBtn">▶ JUGAR AHORA</button>
+              <button class="secondary-btn" id="howBtn">¿CÓMO JUGAR?</button>
+            </div>
+            <div class="mini-stats">
+              <div><strong>5</strong><span>Estaciones</span></div>
+              <div><strong>50</strong><span>Retos</span></div>
+              <div><strong>3</strong><span>Estrellas</span></div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <div class="orbit orbit-a"></div>
+            <div class="orbit orbit-b"></div>
+            <div class="floating-matrix matrix-a">[ 1&nbsp; 2 ]<br>[ 3&nbsp; 4 ]</div>
+            <div class="floating-matrix matrix-b">[ 5&nbsp; 6 ]<br>[ 7&nbsp; 8 ]</div>
+            <div class="core">A<br><span>×</span><br>B</div>
+            <div class="floating-symbol s1">+</div>
+            <div class="floating-symbol s2">∑</div>
+            <div class="floating-symbol s3">×</div>
+          </div>
+        </div>
+
+        <div class="feature-row">
+          <div><span>🧠</span><b>Desarrolla tu lógica</b></div>
+          <div><span>🧩</span><b>Mejora tu razonamiento</b></div>
+          <div><span>🎯</span><b>Potencia tu concentración</b></div>
+          <div><span>🏆</span><b>Diviértete aprendiendo</b></div>
+        </div>
+
+        <!-- Las estaciones se muestran únicamente después de pulsar JUGAR AHORA. -->
+      </section>
+
+      <!-- MAP -->
+      <section class="screen" id="mapScreen">
+        <div class="page-heading">
+          <button class="back-btn" id="mapBack">← Inicio</button>
+          <div>
+            <div class="eyebrow">CENTRO DE MISIONES</div>
+            <h2>Elige tu estación</h2>
+          </div>
+          <div class="map-score">⭐ <span id="mapScore">0</span></div>
+        </div>
+        <div class="progress-card">
+          <div class="progress-info">
+            <span>PROGRESO DEL VIAJE</span>
+            <div class="progress-actions">
+              <b id="progressText">0 / 5</b>
+              <button class="reset-btn" id="resetStationsBtn" type="button">↻ REINICIAR ESTACIONES</button>
+            </div>
+          </div>
+          <div class="progress-track"><div id="globalProgress"></div></div>
+        </div>
+        <section class="station-results" aria-label="Puntaje por estación">
+          <div class="station-results-head">
+            <div>
+              <span class="eyebrow">TUS RESULTADOS</span>
+              <h3>Puntaje por estación</h3>
+            </div>
+            <span>⭐ Las estrellas representan tu mejor resultado</span>
+          </div>
+          <div class="station-results-grid" id="stationResults"></div>
+        </section>
+        <div class="station-grid large" id="mapStations"></div>
+      </section>
+
+      <!-- GAME -->
+      <section class="screen" id="gameScreen">
+        <div class="game-top">
+          <button class="back-btn" id="gameBack">← Estaciones</button>
+          <div class="game-station-name" id="gameStationName"></div>
+          <div class="game-stats">
+            <span>⭐ <b id="gameScore">0</b></span>
+            <span>🔥 <b id="streak">0</b></span>
+            <span class="timer-box">⏱ TIEMPO <b id="timer">0:20</b><button type="button" class="timer-toggle" id="timerToggle" title="Pausar tiempo" aria-label="Pausar tiempo">⏸</button></span>
+          </div>
+        </div>
+        <div class="game-progress"><div id="roundProgress"></div></div>
+        <div class="challenge-card">
+          <div class="challenge-head">
+            <span class="level-tag" id="levelTag">RETO 1</span>
+            <span id="challengeTopic">Matrices</span>
+          </div>
+          <div id="challengeContent" class="challenge-content"></div>
+          <div id="feedback" class="feedback"></div>
+        </div>
+      </section>
+
+      <!-- RESULTS -->
+      <section class="screen" id="resultScreen">
+        <div class="result-card">
+          <div class="result-trophy" id="resultTrophy">🏆</div>
+          <div class="eyebrow">ESTACIÓN COMPLETADA</div>
+          <h2 id="resultTitle">¡Excelente trabajo!</h2>
+          <p id="resultMessage"></p>
+          <div class="result-stats">
+            <div><strong id="resultPoints">0</strong><span>Puntos</span></div>
+            <div><strong id="resultCorrect">0/5</strong><span>Aciertos</span></div>
+            <div><strong id="resultStars">☆☆☆</strong><span>Estrellas</span></div>
+          </div>
+          <div class="result-actions">
+            <button class="primary-btn" id="nextBtn">SIGUIENTE ESTACIÓN →</button>
+            <button class="secondary-btn" id="retryBtn">↻ REPETIR</button>
+            <button class="ghost-btn" id="resultMapBtn">VER ESTACIONES</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- FINAL -->
+      <section class="screen" id="finalScreen">
+        <div class="final-card">
+          <div class="final-lock">🔓</div>
+          <div class="eyebrow">MISIÓN FINAL</div>
+          <h2>¡Has recorrido todo el mundo!</h2>
+          <p>Introduce el código que obtuviste al completar las cinco estaciones.</p>
+          <div class="secret-code" id="secretCode">_ _ _ _ _</div>
+          <div class="code-inputs" id="codeInputs"></div>
+          <button class="primary-btn" id="unlockBtn">🔐 DESBLOQUEAR CÓDIGO</button>
+          <div id="finalFeedback" class="feedback"></div>
+          <div class="final-summary">
+            <span>⭐ Puntuación total: <b id="finalScore">0</b></span>
+            <span>🏆 Estaciones: <b>5/5</b></span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>EL MUNDO DE LAS MATRICES</span>
+      <span>Aprende · Juega · Descubre</span>
+    </footer>
+  </div>
+
+  <div class="modal hidden" id="modal">
+    <div class="modal-box">
+      <button class="modal-close" id="modalClose">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="mecanica.js"></script>
+</body>
+</html>
