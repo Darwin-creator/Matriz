@@ -11,10 +11,11 @@ const state = {
   completed: JSON.parse(localStorage.getItem("matrix_completed") || "[]"),
   stars: JSON.parse(localStorage.getItem("matrix_stars") || "{}"),
   stationScores: JSON.parse(localStorage.getItem("matrix_station_scores") || "{}"),
+  attempts: JSON.parse(localStorage.getItem("matrix_attempts") || "{}"),
   sound: localStorage.getItem("matrix_sound") !== "off",
   station: 0, round: 0, correct: 0, roundScore: 0, streak: 0,
   timerId: null, timerDeadline: null, timeRemaining: 0, timerPaused: false,
-  current: null, code: [],
+  current: null, code: [], questionOrder: [],
   audioContext: null, musicMaster: null, musicTimer: null, musicStep: 0
 };
 
@@ -37,6 +38,7 @@ function save(){
   localStorage.setItem("matrix_completed",JSON.stringify(state.completed));
   localStorage.setItem("matrix_stars",JSON.stringify(state.stars));
   localStorage.setItem("matrix_station_scores",JSON.stringify(state.stationScores));
+  localStorage.setItem("matrix_attempts",JSON.stringify(state.attempts));
 }
 function updateScore(){
   $("scoreTop").textContent=state.score;
@@ -59,8 +61,8 @@ function sound(type){
     if(!c) return;
     if(c.state==="suspended") c.resume();
     const o=c.createOscillator(), g=c.createGain();
-    o.type=type==="good"?"triangle":"sine";
-    o.frequency.value=type==="good"?650:type==="bad"?170:420;
+    o.type=type==="good"?"triangle":type==="wrong"?"sawtooth":"sine";
+    o.frequency.value=type==="good"?650:type==="wrong"?120:type==="bad"?170:420;
     g.gain.setValueAtTime(.055,c.currentTime);
     g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.16);
     o.connect(g); g.connect(c.destination);
@@ -158,8 +160,8 @@ function renderMap(){
 const challenges = {
 1:[{"q":"¿Cuántas filas tiene esta matriz?","matrix":[[2,5,1],[4,3,7]],"opts":["1","2","3","6"],"ans":"2"},{"q":"¿Cuántas columnas tiene esta matriz?","matrix":[[4,8,2],[1,6,9]],"opts":["2","3","4","6"],"ans":"3"},{"q":"¿Cuál es el elemento a₂,₃?","matrix":[[2,5,1],[4,3,7]],"opts":["1","3","7","5"],"ans":"7"},{"q":"¿En qué posición está el número 9?","matrix":[[1,2,3],[4,5,6],[7,8,9]],"opts":["(1,3)","(2,2)","(3,3)","(3,2)"],"ans":"(3,3)"},{"q":"¿Qué dimensión tiene esta matriz?","matrix":[[1,2],[3,4],[5,6]],"opts":["2×2","2×3","3×2","3×3"],"ans":"3×2"},{"q":"¿Cuál es el elemento a₁,₂?","matrix":[[8,4,6],[3,7,2]],"opts":["8","4","6","7"],"ans":"4"},{"q":"¿Cuál es el elemento a₂,₁?","matrix":[[9,2,5],[6,1,8]],"opts":["9","2","6","8"],"ans":"6"},{"q":"¿Cuántos elementos tiene una matriz 3×2?","visual":[[1,2],[3,4],[5,6]],"opts":["5","6","8","9"],"ans":"6"},{"q":"¿Qué dimensión tiene esta matriz?","matrix":[[7,1,4,2],[3,8,5,9]],"opts":["2×4","4×2","2×3","4×4"],"ans":"2×4"},{"q":"¿En qué posición está el número 12?","matrix":[[4,6,9],[2,8,12],[1,3,5]],"opts":["(1,3)","(2,2)","(2,3)","(3,2)"],"ans":"(2,3)"}],
 2:[{"q":"Identifica la matriz FILA.","opts":["[ 1  2  3 ]","[ 1 ] [ 2 ] [ 3 ]","[1 0] [0 1]","[0 0] [0 0]"],"ans":"[ 1  2  3 ]"},{"q":"Identifica la matriz COLUMNA.","opts":["[ 1  2  3 ]","[ 1 ] [ 2 ] [ 3 ]","[1 0] [0 1]","[0 0] [0 0]"],"ans":"[ 1 ] [ 2 ] [ 3 ]"},{"q":"¿Cuál es una matriz IDENTIDAD?","opts":["[1 0] [0 1]","[1 1] [1 1]","[0 0] [0 0]","[1 2] [3 4]"],"ans":"[1 0] [0 1]"},{"q":"¿Cuál es una matriz CERO?","opts":["[1 0] [0 1]","[0 0] [0 0]","[1 2] [3 4]","[1 0 0]"],"ans":"[0 0] [0 0]"},{"q":"¿Cuál es RECTANGULAR?","opts":["[1 2] [3 4]","[1 2 3] [4 5 6]","[1 0] [0 1]","[0 0] [0 0]"],"ans":"[1 2 3] [4 5 6]"},{"q":"¿Cuál es una matriz CUADRADA?","opts":["[1 2 3] [4 5 6]","[1 2] [3 4]","[1] [2] [3]","[1 2 3]"],"ans":"[1 2] [3 4]"},{"q":"¿Cuál es una matriz FILA?","opts":["[4 7 2 9]","[4] [7] [2] [9]","[1 0] [0 1]","[0 0] [0 0]"],"ans":"[4 7 2 9]"},{"q":"¿Cuál es una matriz COLUMNA?","opts":["[2 5 8]","[2] [5] [8]","[1 2] [3 4]","[0 0] [0 0]"],"ans":"[2] [5] [8]"},{"q":"¿Cuál es una matriz IDENTIDAD de 3×3?","opts":["[1 0 0] [0 1 0] [0 0 1]","[1 1 1] [1 1 1] [1 1 1]","[0 0 0] [0 0 0] [0 0 0]","[1 2 3] [4 5 6] [7 8 9]"],"ans":"[1 0 0] [0 1 0] [0 0 1]"},{"q":"¿Cuál es una matriz CERO de 2×3?","opts":["[0 0 0] [0 0 0]","[1 0 0] [0 1 0]","[0 0] [0 0]","[1 1 1] [1 1 1]"],"ans":"[0 0 0] [0 0 0]"}],
-3:[{"q":"Calcula A + B.","a":[[1,2],[3,4]],"b":[[5,6],[7,8]],"opts":["[6 8] [10 12]","[-4 -4] [-4 -4]","[5 12] [21 32]","[7 9] [11 13]"],"ans":"[6 8] [10 12]"},{"q":"Calcula A − B.","a":[[9,7],[5,3]],"b":[[4,2],[1,1]],"opts":["[5 5] [4 2]","[13 9] [6 4]","[36 14] [5 3]","[6 6] [5 3]"],"ans":"[5 5] [4 2]"},{"q":"Calcula A + B.","a":[[2,4],[1,3]],"b":[[6,1],[5,2]],"opts":["[8 5] [6 5]","[-4 3] [-4 1]","[12 4] [5 6]","[9 6] [7 6]"],"ans":"[8 5] [6 5]"},{"q":"Calcula A − B.","a":[[10,8],[6,4]],"b":[[3,2],[1,1]],"opts":["[7 6] [5 3]","[13 10] [7 5]","[30 16] [6 4]","[8 7] [6 4]"],"ans":"[7 6] [5 3]"},{"q":"Calcula A + B.","a":[[5,0],[2,7]],"b":[[1,4],[6,3]],"opts":["[6 4] [8 10]","[4 -4] [-4 4]","[5 0] [12 21]","[7 5] [9 11]"],"ans":"[6 4] [8 10]"},{"q":"Calcula A − B.","a":[[8,9],[7,5]],"b":[[2,4],[3,1]],"opts":["[6 5] [4 4]","[10 13] [10 6]","[16 36] [21 5]","[7 6] [5 5]"],"ans":"[6 5] [4 4]"},{"q":"Calcula 3A.","a":[[2,1],[4,3]],"opts":["[6 3] [12 9]","[5 4] [7 6]","[8 4] [16 12]","[2 1] [4 3]"],"ans":"[6 3] [12 9]"},{"q":"Calcula 2A.","a":[[5,3],[2,4]],"opts":["[10 6] [4 8]","[7 5] [4 6]","[15 9] [6 12]","[5 3] [2 4]"],"ans":"[10 6] [4 8]"},{"q":"Calcula 4A.","a":[[1,2],[3,5]],"opts":["[4 8] [12 20]","[5 6] [7 9]","[5 10] [15 25]","[1 2] [3 5]"],"ans":"[4 8] [12 20]"},{"q":"Calcula 5A.","a":[[2,0],[1,3]],"opts":["[10 0] [5 15]","[7 5] [6 8]","[12 0] [6 18]","[2 0] [1 3]"],"ans":"[10 0] [5 15]"}],
-4:[{"q":"Calcula A × B.","a":[[1,2],[3,4]],"b":[[5,6],[7,8]],"opts":["[19 22] [43 50]","[6 8] [10 12]","[5 6] [15 18]","[23 31] [34 46]"],"ans":"[19 22] [43 50]"},{"q":"Calcula A × B.","a":[[2,1],[0,3]],"b":[[4,2],[5,1]],"opts":["[13 5] [15 3]","[6 3] [5 4]","[8 4] [0 0]","[8 10] [10 8]"],"ans":"[13 5] [15 3]"},{"q":"Calcula A × B.","a":[[1,0],[2,3]],"b":[[4,5],[1,2]],"opts":["[4 5] [11 16]","[5 5] [3 5]","[4 5] [8 10]","[14 5] [15 6]"],"ans":"[4 5] [11 16]"},{"q":"Calcula A × B.","a":[[2,3],[1,4]],"b":[[1,2],[3,5]],"opts":["[11 19] [13 22]","[3 5] [4 9]","[2 4] [1 2]","[4 11] [11 29]"],"ans":"[11 19] [13 22]"},{"q":"Calcula A × B.","a":[[3,1],[2,2]],"b":[[2,4],[1,3]],"opts":["[7 15] [6 14]","[5 5] [3 5]","[6 12] [4 8]","[14 9] [10 7]"],"ans":"[7 15] [6 14]"},{"q":"Calcula A × B.","a":[[1,4],[2,1]],"b":[[3,2],[5,1]],"opts":["[23 6] [11 5]","[4 6] [7 2]","[3 2] [6 4]","[7 7] [14 21]"],"ans":"[23 6] [11 5]"},{"q":"Si A es 2×3 y B es 3×2, ¿qué dimensión tendrá A×B?","opts":["2×2","3×3","2×3","3×2"],"ans":"2×2"},{"q":"Si A es 3×2 y B es 2×4, ¿qué dimensión tendrá A×B?","opts":["3×4","2×2","4×3","3×2"],"ans":"3×4"},{"q":"¿Qué condición se necesita para multiplicar A×B?","opts":["Columnas de A = filas de B","Filas de A = filas de B","Columnas de A = columnas de B","Siempre se puede"],"ans":"Columnas de A = filas de B"},{"q":"Si A es 2×2 y B es 2×3, ¿qué dimensión tendrá A×B?","opts":["2×3","3×2","2×2","3×3"],"ans":"2×3"}],
+3:[{"q":"Calcula A + B.","a":[[1,2],[3,4]],"b":[[5,6],[7,8]],"opts":["[6 8] [10 12]","[-4 -4] [-4 -4]","[5 12] [21 32]","[6 9] [11 13]"],"ans":"[6 8] [10 12]"},{"q":"Calcula A − B.","a":[[9,7],[5,3]],"b":[[4,2],[1,1]],"opts":["[5 5] [4 2]","[13 9] [6 4]","[36 14] [5 3]","[5 6] [5 3]"],"ans":"[5 5] [4 2]"},{"q":"Calcula A + B.","a":[[2,4],[1,3]],"b":[[6,1],[5,2]],"opts":["[8 5] [6 5]","[-4 3] [-4 1]","[12 4] [5 6]","[8 6] [7 6]"],"ans":"[8 5] [6 5]"},{"q":"Calcula A − B.","a":[[10,8],[6,4]],"b":[[3,2],[1,1]],"opts":["[7 6] [5 3]","[13 10] [7 5]","[30 16] [6 4]","[7 7] [6 4]"],"ans":"[7 6] [5 3]"},{"q":"Calcula A + B.","a":[[5,0],[2,7]],"b":[[1,4],[6,3]],"opts":["[6 4] [8 10]","[4 -4] [-4 4]","[5 0] [12 21]","[6 5] [9 11]"],"ans":"[6 4] [8 10]"},{"q":"Calcula A − B.","a":[[8,9],[7,5]],"b":[[2,4],[3,1]],"opts":["[6 5] [4 4]","[10 13] [10 6]","[16 36] [21 5]","[6 6] [5 5]"],"ans":"[6 5] [4 4]"},{"q":"Calcula 3A.","a":[[2,1],[4,3]],"opts":["[6 3] [12 9]","[5 4] [7 6]","[8 4] [16 12]","[6 2] [10 8]"],"ans":"[6 3] [12 9]"},{"q":"Calcula 2A.","a":[[5,3],[2,4]],"opts":["[10 6] [4 8]","[7 5] [4 6]","[15 9] [6 12]","[10 3] [2 4]"],"ans":"[10 6] [4 8]"},{"q":"Calcula 4A.","a":[[1,2],[3,5]],"opts":["[4 8] [12 20]","[10 5] [6 12]","[4 10] [12 20]","[1 2] [3 5]"],"ans":"[4 8] [12 20]"},{"q":"Calcula 5A.","a":[[2,0],[1,3]],"opts":["[10 0] [5 15]","[7 5] [6 8]","[10 5] [6 18]","[2 0] [1 3]"],"ans":"[10 0] [5 15]"}],
+4:[{"q":"Calcula A × B.","a":[[1,2],[3,4]],"b":[[5,6],[7,8]],"opts":["[19 22] [43 50]","[6 8] [10 12]","[5 6] [15 18]","[19 31] [34 46]"],"ans":"[19 22] [43 50]"},{"q":"Calcula A × B.","a":[[2,1],[0,3]],"b":[[4,2],[5,1]],"opts":["[13 5] [15 3]","[6 3] [5 4]","[8 4] [0 0]","[13 10] [10 8]"],"ans":"[13 5] [15 3]"},{"q":"Calcula A × B.","a":[[1,0],[2,3]],"b":[[4,5],[1,2]],"opts":["[4 5] [11 16]","[5 5] [3 5]","[4 6] [8 10]","[14 5] [15 6]"],"ans":"[4 5] [11 16]"},{"q":"Calcula A × B.","a":[[2,3],[1,4]],"b":[[1,2],[3,5]],"opts":["[11 19] [13 22]","[3 5] [4 9]","[2 4] [1 2]","[11 11] [11 29]"],"ans":"[11 19] [13 22]"},{"q":"Calcula A × B.","a":[[3,1],[2,2]],"b":[[2,4],[1,3]],"opts":["[7 15] [6 14]","[5 5] [3 5]","[6 12] [4 8]","[7 7] [10 7]"],"ans":"[7 15] [6 14]"},{"q":"Calcula A × B.","a":[[1,4],[2,1]],"b":[[3,2],[5,1]],"opts":["[23 6] [11 5]","[4 6] [7 2]","[3 2] [6 4]","[23 7] [14 21]"],"ans":"[23 6] [11 5]"},{"q":"Si A es 2×3 y B es 3×2, ¿qué dimensión tendrá A×B?","opts":["2×2","3×3","2×3","3×2"],"ans":"2×2"},{"q":"Si A es 3×2 y B es 2×4, ¿qué dimensión tendrá A×B?","opts":["3×4","2×2","4×3","3×2"],"ans":"3×4"},{"q":"¿Qué condición se necesita para multiplicar A×B?","opts":["Columnas de A = filas de B","Filas de A = filas de B","Columnas de A = columnas de B","Siempre se puede"],"ans":"Columnas de A = filas de B"},{"q":"Si A es 2×2 y B es 2×3, ¿qué dimensión tendrá A×B?","opts":["2×3","3×2","2×2","3×3"],"ans":"2×3"}],
 5:[{"q":"Resuelve: x + y = 5; 2x + y = 7.","opts":["x=2, y=3","x=3, y=2","x=1, y=4","x=4, y=1"],"ans":"x=2, y=3"},{"q":"Resuelve: x + y = 8; x − y = 2.","opts":["x=5, y=3","x=4, y=4","x=3, y=5","x=6, y=2"],"ans":"x=5, y=3"},{"q":"Resuelve: 2x + y = 9; x + y = 6.","opts":["x=3, y=3","x=2, y=4","x=4, y=2","x=5, y=1"],"ans":"x=3, y=3"},{"q":"Resuelve: x + 2y = 8; x − y = 2.","opts":["x=4, y=2","x=6, y=1","x=3, y=5","x=5, y=3"],"ans":"x=4, y=2"},{"q":"Resuelve: 3x + y = 10; x + y = 6.","opts":["x=2, y=4","x=3, y=3","x=1, y=5","x=4, y=2"],"ans":"x=2, y=4"},{"q":"Resuelve: 2x + 3y = 12; x + y = 5.","opts":["x=3, y=2","x=2, y=3","x=4, y=1","x=1, y=4"],"ans":"x=3, y=2"},{"q":"Resuelve: x + 2y = 7; 2x − y = 4.","opts":["x=3, y=2","x=2, y=3","x=4, y=1","x=1, y=3"],"ans":"x=3, y=2"},{"q":"Resuelve: 3x + 2y = 16; x + y = 6.","opts":["x=4, y=2","x=2, y=4","x=3, y=3","x=5, y=1"],"ans":"x=4, y=2"},{"q":"Resuelve: 2x + y = 11; x + 2y = 10.","opts":["x=4, y=3","x=3, y=4","x=5, y=1","x=2, y=5"],"ans":"x=4, y=3"},{"q":"Resuelve: x + y = 9; 3x + y = 13.","opts":["x=2, y=7","x=3, y=6","x=4, y=5","x=1, y=8"],"ans":"x=2, y=7"}]
 };
 
@@ -188,27 +190,54 @@ function shuffleArray(items){
 }
 
 function arrangeOptions(options, answer){
-  // Distribuye la respuesta correcta entre A, B, C y D de forma equilibrada.
-  // Así no se generan estaciones donde casi todo sea la opción A.
-  const correctIndex=(state.round + state.station - 1) % options.length;
-  const others=shuffleArray(options.filter(option=>option!==answer));
-  const arranged=[];
-  let otherIndex=0;
-  for(let i=0;i<options.length;i++){
-    arranged.push(i===correctIndex ? answer : others[otherIndex++]);
-  }
-  return arranged;
+  // Cada reto coloca la respuesta correcta en una posición distinta y aleatoria.
+  // Los distractores también se mezclan en cada aparición de la pregunta.
+  const shuffled=shuffleArray(options);
+  return shuffled;
+}
+
+function systemHTML(q){
+  const parts=String(q).split(";").map(x=>x.trim()).filter(Boolean);
+  if(parts.length!==2) return "";
+  return `<div class="equation-system" aria-label="Sistema de ecuaciones 2 por 2">
+    <div class="equation-brace">{</div>
+    <div class="equations"><div>${parts[0]}</div><div>${parts[1]}</div></div>
+  </div>`;
+}
+
+function scalarHTML(q,m){
+  const match=String(q).match(/Calcula\s+(-?\d+)A/i);
+  if(!match || !m) return "";
+  return `<div class="matrix-scalar-operation" aria-label="Multiplica toda la matriz por ${match[1]}">
+    <span class="scalar-number">${match[1]}</span>
+    <b class="operator">×</b>
+    <span aria-hidden="true">[</span>${matrixHTML(m)}<span aria-hidden="true">]</span>
+  </div>
+  <div class="scalar-help">Multiplica <b>cada número de la matriz</b> por ${match[1]}.</div>`;
 }
 
 function challengeHTML(c){
   let html="";
+  const isSystem=state.station===5 && String(c.q).includes(";");
+  const scalar=String(c.q).match(/Calcula\s+(-?\d+)A/i);
   if(c.visual) html+=`<div class="question-visual" aria-label="Matriz de referencia">${matrixHTML(c.visual)}</div>`;
-  html+=`<div class="question">${c.q}</div>`;
-  if(c.matrix) html+=matrixHTML(c.matrix);
+  if(isSystem){
+    html+=`<div class="question">Resuelve el sistema de ecuaciones 2×2:</div>`;
+  }else if(scalar){
+    html+=`<div class="question">Multiplica toda la matriz por ${scalar[1]}:</div>`;
+  }else{
+    html+=`<div class="question">${c.q}</div>`;
+  }
+  if(isSystem) html+=systemHTML(c.q);
+  else if(c.matrix) html+=matrixHTML(c.matrix);
   if(c.a){
-    html+=`<div class="matrix-operation">${matrixHTML(c.a)}
-      <b class="operator">${c.q.includes("×") ? "×" : c.q.includes("−") ? "−" : "+"}</b>
-      ${c.b ? matrixHTML(c.b) : ""}</div>`;
+    if(scalar){
+      html+=scalarHTML(c.q,c.a);
+    }else{
+      html+=`<div class="matrix-operation">${matrixHTML(c.a)}
+        <b class="operator">${c.q.includes("×") ? "×" : c.q.includes("−") ? "−" : "+"}</b>
+        ${c.b ? matrixHTML(c.b) : ""}</div>`;
+    }
   }
   if(c.opts){
     const shuffled=arrangeOptions(c.opts,c.ans);
@@ -227,8 +256,10 @@ function resetStations(){
   state.stars={};
   state.stationScores={};
   state.station=0; state.round=0; state.correct=0; state.roundScore=0; state.streak=0;
+  state.attempts={};
   state.timeRemaining=0; state.timerPaused=false; state.current=null; state.code=[];
   save();
+  if($("modal")) closeModal();
   updateScore();
   renderMap();
   showScreen("mapScreen");
@@ -239,13 +270,17 @@ function startStation(n){
   if(n>1 && !state.completed.includes(n-1)) return;
   stopTimer();
   state.station=n; state.round=0; state.correct=0; state.roundScore=0; state.streak=0; state.timerPaused=false;
+  // Cada partida recibe un orden nuevo de preguntas para evitar memorizarlas.
+  state.questionOrder=shuffleArray(challenges[n].map((_,index)=>index));
   $("gameStationName").textContent=`${stations[n-1].icon} ${stations[n-1].title}`;
   document.documentElement.style.setProperty("--game-color",stations[n-1].color);
   showScreen("gameScreen");
   loadChallenge();
 }
 function loadChallenge(){
-  const list=challenges[state.station], c=list[state.round];
+  const list=challenges[state.station];
+  const questionIndex=state.questionOrder[state.round] ?? state.round;
+  const c=list[questionIndex];
   state.current=c;
   $("levelTag").textContent=`RETO ${state.round+1} / ${list.length}`;
   $("challengeTopic").textContent=stations[state.station-1].topic;
@@ -260,7 +295,7 @@ function startTimer(){
   stopTimer();
   state.timerPaused=false;
 
-  const timeByStation={1:20,2:30,3:45,4:60,5:75};
+  const timeByStation={1:15,2:15,3:20,4:25,5:120};
   state.timeRemaining=timeByStation[state.station]||30;
   state.timerDeadline=Date.now()+state.timeRemaining*1000;
   updateTimerDisplay();
@@ -350,7 +385,7 @@ function checkAnswer(answer,btn,timeout=false){
     if(btn) btn.classList.add("correct");
     fb.className="feedback good"; fb.textContent=`✓ ¡Correcto! +${pts} puntos`;
   }else{
-    state.streak=0; sound("bad");
+    state.streak=0; sound(timeout?"bad":"wrong");
     if(btn) btn.classList.add("wrong");
     fb.className="feedback bad"; fb.textContent=timeout?`⏱ Se acabó el tiempo. Era: ${state.current.ans}`:`✗ Casi. La respuesta era: ${state.current.ans}`;
   }
@@ -369,6 +404,23 @@ function finishStation(){
   state.stationScores[state.station]=Math.max(previousScore,state.roundScore);
   state.score=Object.values(state.stationScores).reduce((sum,value)=>sum+Number(value||0),0);
   if(!state.completed.includes(state.station)) state.completed.push(state.station);
+
+  // Historial: máximo 5 intentos por estación. El mejor resultado se conserva
+  // aparte para el sistema de récord personal.
+  const history=Array.isArray(state.attempts[state.station]) ? state.attempts[state.station] : [];
+  if(history.length<5){
+    history.push({
+      attempt:history.length+1,
+      points:state.roundScore,
+      stars,
+      correct:state.correct,
+      failed:total-state.correct,
+      date:new Date().toLocaleString("es-EC")
+    });
+    state.attempts[state.station]=history;
+  }else{
+    window.alert("Memoria llena, reinicie sus estaciones.");
+  }
   save(); stopTimer();
   $("resultPoints").textContent=state.roundScore;
   $("resultCorrect").textContent=`${state.correct}/${total}`;
@@ -378,8 +430,96 @@ function finishStation(){
   $("nextBtn").textContent=state.station<5?"SIGUIENTE ESTACIÓN →":"IR AL CÓDIGO SECRETO 🔐";
   showScreen("resultScreen"); renderHome(); renderMap();
 }
+function renderFinalStatistics(){
+  const target=$("finalStatistics");
+  if(!target) return;
+  target.innerHTML=stations.map(s=>{
+    const points=Number(state.stationScores[s.id]||0);
+    const stars=Number(state.stars[s.id]||0);
+    const attempts=Array.isArray(state.attempts[s.id])?state.attempts[s.id]:[];
+    const best=attempts.reduce((acc,item)=>item.points>acc.points?item:acc,{points:0,stars:stars,correct:0,failed:challenges[s.id].length});
+    const bestPoints=best.points || points;
+    const bestStars=attempts.length ? best.stars : stars;
+    return `<div class="final-stat-item" style="--c:${s.color}">
+      <b>${s.icon} Estación ${s.id}</b>
+      <div class="final-stat-line"><span>Puntos</span><strong>${bestPoints}</strong></div>
+      <div class="final-stat-line"><span>Estrellas</span><strong>${"★".repeat(bestStars)}${"☆".repeat(3-bestStars)}</strong></div>
+      <div class="final-stat-line"><span>Aciertos</span><strong>${best.correct}/${challenges[s.id].length}</strong></div>
+      <div class="final-stat-line"><span>Falladas</span><strong>${best.failed}</strong></div>
+    </div>`;
+  }).join("");
+}
+
+function openAdminResults(){
+  // Siempre reconstruimos la ventana con el estado actual guardado.
+  // Así puede abrirse después de terminar cualquier estación sin depender
+  // de que la pantalla haya sido renderizada antes.
+  let html=`<h2>⚙ Administrar resultados</h2>
+    <p class="admin-intro">Aquí se guardan automáticamente los resultados de cada estación. Cada estación permite hasta <b>5 intentos</b>.</p>`;
+
+  stations.forEach(s=>{
+    const attempts=Array.isArray(state.attempts[s.id]) ? state.attempts[s.id] : [];
+    const best=attempts.reduce((acc,item)=>{
+      if(!acc || Number(item.points)>Number(acc.points)) return item;
+      if(acc && Number(item.points)===Number(acc.points) && Number(item.stars)>Number(acc.stars)) return item;
+      return acc;
+    },null);
+
+    const currentBestPoints=best ? Number(best.points) : Number(state.stationScores[s.id]||0);
+    const currentBestStars=best ? Number(best.stars) : Number(state.stars[s.id]||0);
+
+    html+=`<div class="admin-station" data-admin-station="${s.id}">
+      <div class="admin-station-head">
+        <b>${s.icon} Estación ${s.id} · ${s.title}</b>
+        <span>${attempts.length}/5 intentos</span>
+      </div>
+      <div class="admin-best">
+        🏆 Récord personal: ${attempts.length
+          ? `${currentBestPoints} puntos · ${currentBestStars} ⭐ · ${best.correct} aciertos · ${best.failed} falladas`
+          : "Sin intentos todavía"}
+      </div>
+      <div class="attempt-list">
+        ${[1,2,3,4,5].map(n=>{
+          const item=attempts.find(x=>Number(x.attempt)===n);
+          return item
+            ? `<button class="attempt-btn" type="button" data-station="${s.id}" data-attempt="${n}">Intento ${n}</button>`
+            : `<button class="attempt-btn" type="button" disabled>Intento ${n}</button>`;
+        }).join("")}
+      </div>
+      <div class="attempt-detail" id="attemptDetail${s.id}">
+        ${attempts.length ? "Selecciona un intento para ver todos sus resultados." : "No hay intentos guardados."}
+      </div>
+    </div>`;
+  });
+
+  $("modalContent").innerHTML=html;
+  $("modal").classList.remove("hidden");
+  document.body.classList.add("modal-open");
+
+  // Los botones de Intento se crean dinámicamente, por eso usamos delegación.
+  $("modalContent").onclick=(event)=>{
+    const btn=event.target.closest(".attempt-btn[data-attempt]");
+    if(!btn) return;
+    const station=Number(btn.dataset.station);
+    const attempt=Number(btn.dataset.attempt);
+    const item=(state.attempts[station]||[]).find(x=>Number(x.attempt)===attempt);
+    const detail=$("attemptDetail"+station);
+    if(!item || !detail) return;
+    const starsText="★".repeat(Number(item.stars)||0)+"☆".repeat(3-(Number(item.stars)||0));
+    detail.innerHTML=`<b>Intento ${item.attempt}</b>
+      <div class="attempt-detail-grid">
+        <span>🏆 Puntos: <b>${item.points}</b></span>
+        <span>⭐ Estrellas: <b>${starsText}</b></span>
+        <span>✅ Aciertos: <b>${item.correct}</b></span>
+        <span>❌ Preguntas falladas: <b>${item.failed}</b></span>
+      </div>
+      <small>Guardado: ${item.date}</small>`;
+  };
+}
+
 function buildFinal(){
   $("finalScore").textContent=state.score;
+  renderFinalStatistics();
   const vals=[1,2,3,4,5].map(n=>state.stars[n]||0);
   // Código variable según desempeño: siempre deducible por completar las estaciones.
   state.code=vals.map((s,i)=>(i+1)+s);
@@ -408,7 +548,7 @@ function unlock(){
 $("startBtn").onclick=()=>{startMusic();renderMap();showScreen("mapScreen")};
 $("howBtn").onclick=()=>openHelp();
 $("helpBtn").onclick=()=>openHelp();
-$("modalClose").onclick=()=>$("modal").classList.add("hidden");
+$("modalClose").onclick=()=>closeModal();
 $("mapBack").onclick=()=>{renderHome();showScreen("homeScreen")};
 $("gameBack").onclick=()=>{stopTimer();renderMap();showScreen("mapScreen")};
 $("resultMapBtn").onclick=()=>{renderMap();showScreen("mapScreen")};
@@ -418,6 +558,16 @@ $("nextBtn").onclick=()=>{
   else {buildFinal();showScreen("finalScreen")}
 };
 $("unlockBtn").onclick=unlock;
+// El botón de administración se enlaza de forma delegada para que siga funcionando
+// aunque el contenido de la pantalla se vuelva a renderizar después de terminar una estación.
+document.addEventListener("click",(event)=>{
+  const adminBtn=event.target.closest("#adminResultsBtn");
+  if(adminBtn){
+    event.preventDefault();
+    event.stopPropagation();
+    openAdminResults();
+  }
+});
 $("timerToggle").onclick=togglePause;
 $("resetStationsBtn").onclick=resetStations;
 $("homeBtn").onclick=()=>{stopTimer();renderHome();showScreen("homeScreen")};
@@ -426,6 +576,12 @@ $("soundBtn").onclick=()=>{
   $("soundBtn").textContent=state.sound?"🔊":"🔇";
   if(state.sound) startMusic(); else stopMusic();
 };
+function closeModal(){
+  $("modal").classList.add("hidden");
+  document.body.classList.remove("modal-open");
+  if($("modalContent")) $("modalContent").onclick=null;
+}
+
 function openHelp(){
   $("modalContent").innerHTML=`<h2>🎮 ¿Cómo jugar?</h2>
   <ul>
@@ -440,3 +596,10 @@ function openHelp(){
 }
 renderHome();
 $("soundBtn").textContent=state.sound?"🔊":"🔇";
+
+
+document.addEventListener("keydown",(event)=>{
+  if(event.key==="Escape" && $("modal") && !$("modal").classList.contains("hidden")){
+    closeModal();
+  }
+});
