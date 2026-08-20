@@ -7,14 +7,14 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;font-family:Nunito,Arial,sans-serif;color:var(--ink);background:var(--bg)}
-body{overflow-x:hidden;overflow-y:auto}
+body{overflow-x:hidden;overflow-y:auto;scroll-behavior:auto;overscroll-behavior-y:auto;-webkit-overflow-scrolling:touch}
 button{font:inherit;cursor:pointer;border:0}
 #app{min-height:100vh;position:relative;background:
  radial-gradient(circle at 15% 10%,rgba(39,117,216,.24),transparent 27%),
  radial-gradient(circle at 90% 20%,rgba(124,77,204,.20),transparent 30%),
  linear-gradient(145deg,#06112b,#0a1b3b 55%,#06132e)}
 .bg-grid{position:fixed;inset:0;pointer-events:none;opacity:.08;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent)}
-.topbar{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;border-bottom:1px solid rgba(255,255,255,.1);position:sticky;top:0;z-index:20;background:rgba(5,17,43,.82);backdrop-filter:blur(14px)}
+.topbar{will-change:transform;height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;border-bottom:1px solid rgba(255,255,255,.1);position:sticky;top:0;z-index:20;background:rgba(5,17,43,.82);backdrop-filter:blur(14px)}
 .brand{background:none;color:white;display:flex;gap:12px;align-items:center;font-weight:900;font-size:14px;letter-spacing:.5px;text-align:left}
 .brand b{color:#f6c832}
 .brand-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#f6c832,#ff8b26);display:grid;place-items:center;color:#14244a;font-size:24px;box-shadow:0 8px 22px #0005}
@@ -589,3 +589,134 @@ footer::before{height:3px;background:linear-gradient(90deg,transparent,#0a7a42 1
   .hero-art::before{width:105%;height:82%;right:-38%;opacity:.11}
   .saint-badge{bottom:0;left:3%;transform:scale(.82);transform-origin:left bottom}
 }
+
+
+/* Ventana final de felicitación: reutiliza el modal existente sin alterar el diseño general. */
+.completion-modal-content{text-align:center;padding:8px 4px 2px}
+.completion-icon{font-size:72px;line-height:1;margin-bottom:8px}
+.completion-modal-content h2{font:800 38px "Baloo 2";color:#17372b;margin:8px 0}
+.completion-modal-content p{color:#60766a;margin:8px 0 18px}
+.completion-score{margin:20px auto 18px;width:min(300px,100%);padding:18px;border-radius:18px;background:#edf4ed;border:1px solid rgba(10,122,66,.1)}
+.completion-score span{display:block;font-size:12px;font-weight:900;letter-spacing:1px;color:#60766a;text-transform:uppercase}
+.completion-score strong{display:block;font:900 58px "Baloo 2";line-height:1.05;color:#155437}
+.completion-score small{font-size:20px;color:#60766a}
+.completion-prize{font-size:18px!important;color:#155437!important;margin-bottom:0!important}
+
+/* Texto negro únicamente en los botones agregados para el código final. */
+#finalMapBtn, #resetCodeBtn { color:#182546 !important; }
+
+
+/* Ajustes solicitados: botones finales en una sola fila y texto oscuro
+   en los botones de navegación que se añadieron. No altera el resto de la interfaz. */
+.final-code-actions{
+  flex-wrap:nowrap;
+  width:100%;
+  align-items:stretch;
+}
+.final-code-actions > button{
+  flex:1 1 0;
+  min-width:0;
+  white-space:nowrap;
+  font-size:14px;
+}
+#finalMapBtn, #resetCodeBtn, #resultMapBtn{
+  color:#182546 !important;
+}
+@media(max-width:600px){
+  .final-code-actions{
+    flex-wrap:wrap;
+  }
+  .final-code-actions > button{
+    flex:1 1 100%;
+  }
+}
+
+/* =========================================================
+   IDENTIDAD SAN AGUSTÍN — SOLO CAMBIO DE PALETA
+   Mantiene intactos estructura, tamaños, tiempos y mecánicas.
+   Colores tomados visualmente del escudo: verde, dorado y naranja.
+   ========================================================= */
+:root{
+  --bg:#063f24;
+  --bg2:#07552f;
+  --card:#fffdf5;
+  --ink:#17372b;
+  --blue:#08733e;
+  --green:#08733e;
+  --yellow:#efd500;
+  --purple:#ff8015;
+  --red:#c9362f;
+  --cyan:#2da866;
+  --muted:#789183;
+  --shadow:0 18px 45px rgba(0,45,25,.24);
+}
+
+html,body{background:#063f24;color:var(--ink)}
+#app{
+  background:
+    radial-gradient(circle at 12% 8%,rgba(239,213,0,.16),transparent 25%),
+    radial-gradient(circle at 90% 18%,rgba(255,128,21,.14),transparent 28%),
+    linear-gradient(145deg,#04351e,#07552f 55%,#063f24);
+}
+.bg-grid{opacity:.075}
+.topbar{background:rgba(3,55,30,.88);border-bottom-color:rgba(239,213,0,.18)}
+.brand b{color:#efd500}
+.brand-icon{background:linear-gradient(135deg,#efd500,#ff8015);color:#17372b}
+.score-pill,.icon-btn{background:rgba(255,253,245,.10);border-color:rgba(239,213,0,.20)}
+.eyebrow{color:#f0d719}
+.hero h1 span{color:#efd500}
+.hero p{color:#d7e6dc}
+.primary-btn{background:linear-gradient(135deg,#efd500,#ff8015);color:#17372b}
+.secondary-btn{background:#fffdf5;color:#17372b}
+.ghost-btn{background:rgba(255,253,245,.10);border-color:rgba(239,213,0,.24);color:#fffdf5}
+.mini-stats{color:#c5dacd}.mini-stats strong{color:#fffdf5}
+.core{background:linear-gradient(145deg,#efd500,#ff8015);color:#17372b;box-shadow:0 25px 60px rgba(0,0,0,.30),inset 0 2px rgba(255,255,255,.55)}
+.orbit{border-color:rgba(239,213,0,.42)}
+.orbit-b{border-color:rgba(255,128,21,.42)}
+.floating-symbol.s1{color:#53c985}.floating-symbol.s2{color:#efd500}.floating-symbol.s3{color:#ff8015}
+.feature-row div{background:rgba(255,253,245,.07);border-color:rgba(239,213,0,.18)}
+.section-title{color:#fffdf5}.section-title small{color:#b9d0c2}
+.page-heading,.game-top{color:#fffdf5}
+.page-heading h2{color:#fffdf5}
+.back-btn{background:rgba(255,253,245,.09);border-color:rgba(239,213,0,.24);color:#fffdf5}
+.back-btn:hover{background:rgba(239,213,0,.13);border-color:#efd500}
+.map-score{color:#efd500}
+.progress-card,.station-results{background:linear-gradient(145deg,rgba(255,253,245,.08),rgba(8,115,62,.18));border-color:rgba(239,213,0,.20)}
+.progress-track,.game-progress{background:rgba(255,253,245,.14)}
+.progress-track>div,.game-progress>div{background:linear-gradient(90deg,#08733e,#efd500,#ff8015)}
+.station-results-head h3{color:#fffdf5}.station-results-head>span{color:#bdd1c4}
+.station-result-item{background:rgba(255,253,245,.07);border-color:rgba(239,213,0,.15)}
+.station-result-item::before{background:#08733e}
+.station-result-item:nth-child(2)::before,.station-result-item:nth-child(5)::before{background:#efd500}
+.station-result-item:nth-child(3)::before{background:#ff8015}
+.station-result-item b{color:#fff8df}.station-result-stars{color:#efd500}.station-result-score{color:#fffdf5}
+.game-station-name{color:#fffdf5}.game-stats span{background:rgba(255,253,245,.09);border-color:rgba(239,213,0,.20)}
+.timer-box{color:#fffdf5}.timer-toggle{background:rgba(255,253,245,.10);border-color:rgba(239,213,0,.25)}
+.timer-toggle.paused{background:#efd500;color:#17372b}
+.option-btn:hover{border-color:#08733e;background:#eef8f0}
+.option-btn.correct{background:#e2f5e7;border-color:#08733e;color:#176b3b}
+.option-btn.wrong{background:#fbe4df;border-color:#c9362f;color:#9d2a25}
+.feedback.good{color:#08733e}.feedback.bad{color:#c9362f}
+footer{border-top-color:rgba(239,213,0,.20);background:rgba(2,48,25,.58);color:#d6e4da}
+.footer-school-mark{color:#efd500}
+#app::after{background:linear-gradient(90deg,#08733e 0 42%,#efd500 42% 66%,#ff8015 66% 78%,#efd500 78% 84%,#08733e 84%)}
+
+/* Identidad visual de las estaciones: misma estructura, nueva paleta. */
+.station-card{border-top-color:#08733e}
+.station-card:nth-child(2){border-top-color:#efd500}
+.station-card:nth-child(3){border-top-color:#ff8015}
+.station-card:nth-child(4){border-top-color:#08733e}
+.station-card:nth-child(5){border-top-color:#efd500}
+.station-number{background:linear-gradient(145deg,#08733e,#05582e)}
+.station-card:nth-child(2) .station-number,.station-card:nth-child(5) .station-number{background:linear-gradient(145deg,#efd500,#d3b900);color:#17372b}
+.station-card:nth-child(3) .station-number{background:linear-gradient(145deg,#ff8015,#df6410)}
+
+/* Logo institucional ya existente: se conserva y solo armoniza su marco. */
+.school-logo-wrap{background:linear-gradient(145deg,#efd500,#08733e 62%,#ff8015)}
+.school-name b{color:#efd500}
+.institutional-kicker{color:#f5df43}
+.saint-badge{background:rgba(3,57,31,.88);border-color:rgba(239,213,0,.28)}
+.saint-badge b{color:#efd500}
+
+/* Los botones finales conservan su posición y funcionamiento; solo se armoniza el color. */
+#finalMapBtn,#resetCodeBtn,#resultMapBtn{color:#17372b !important}
